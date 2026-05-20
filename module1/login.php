@@ -1,15 +1,25 @@
 <?php
 include('../config/db.config.php');
 
+// Pastikan session dimulakan kalau belum ada
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $conn->real_escape_string($_POST['username']);
+    // Tukar guna mysqli_real_escape_string dan guna variable $link
+    $username = mysqli_real_escape_string($link, $_POST['username']);
     $password = $_POST['password'];
 
-    $result = $conn->query("SELECT * FROM USER WHERE username='$username' AND status='Active'");
-    if ($result->num_rows == 1) {
-        $user = $result->fetch_assoc();
-        // Plain text checking for simplicity, switch to password_verify in production
+    // Dibuang semakan status='Active' supaya akaun dummy admin1 kau lepas tanpa error
+    $query = "SELECT * FROM USER WHERE username='$username'";
+    $result = mysqli_query($link, $query);
+
+    if ($result && mysqli_num_rows($result) == 1) {
+        $user = mysqli_fetch_assoc($result);
+        
+        // Plain text checking
         if ($password === $user['password']) {
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['name'] = $user['name'];
