@@ -18,6 +18,8 @@ if (isset($_POST['publish_event'])) {
           VALUES ($club_id, '$event_name', '$event_date', '$event_time', '$event_description', '$venue', $max_participants)";
     if (mysqli_query($link, $q)) {
         $msg = "<div class='alert alert-success'>Activity published to live scheduled slates framework!</div>";
+    } else {
+        $msg = "<div class='alert alert-danger'>Error: " . mysqli_error($link) . "</div>";
     }
 }
 
@@ -40,8 +42,7 @@ $events_res = mysqli_query($link, "SELECT e.*, c.club_name FROM event e JOIN clu
                 <select name="club_id" class="form-control">
                     <?php while($row = mysqli_fetch_assoc($clubs_list)): ?>
                         <option value="<?php echo $row['club_id']; ?>"><?php echo htmlspecialchars($row['club_name']); ?></option>
-                    <?php endwhere; ?>
-                </select>
+                    <?php endwhile; ?> </select>
             </div>
             <div class="form-group"><label>Event Structural Title</label><input type="text" name="event_name" class="form-control" required></div>
             <div class="form-group"><label>Execution Date Timeline</label><input type="date" name="event_date" class="form-control" required></div>

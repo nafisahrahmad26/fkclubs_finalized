@@ -89,8 +89,7 @@ $users_res = mysqli_query($link, "SELECT * FROM user ORDER BY user_id DESC");
                         <a href="user_management.php?delete_id=<?php echo $u['user_id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Purge account registry entity permanent?')">Delete</a>
                     </td>
                 </tr>
-                <?php endforeach; ?>
-            </tbody>
+                <?php endwhile; ?> </tbody>
         </table>
     </div>
 </div>
