@@ -1,7 +1,6 @@
-<?php 
-include('../includes/header.php'); 
-?>
+<?php include('../includes/header.php'); ?>
 
+<div class="dashboard-container">
 <div class="metrics-row">
     <div class="metric-card">
         <label>Total Users</label>
@@ -63,7 +62,14 @@ include('../includes/header.php');
 
 <div class="content-card">
     <h3>System Announcements / Notifications</h3>
-    <p style="font-size:14px; color:#555;">System is up and running. Layout integration complete.</p>
+    <div style="
+        border: 2px solid #dcdde1;
+        padding: 20px;
+        background: #f9fafb;
+        font-size: 14px;
+    ">
+        System is up and running. Layout integration complete.
+    </div>
 </div>
 
 <?php 
