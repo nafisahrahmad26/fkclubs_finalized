@@ -2,8 +2,8 @@
 require_once __DIR__ . '/../config/db.config.php';
 if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
-require_once __DIR__ . '/header.php';
-require_once __DIR__ . '/sidebar.php';
+require_once __DIR__ . '../includes/header.php';
+require_once __DIR__ . '../includes/sidebar.php';
 
 // Single Table Aggregations
 $total_students = mysqli_fetch_assoc(mysqli_query($link, "SELECT COUNT(*) as count FROM user WHERE user_type = 'Student'"))['count'];
