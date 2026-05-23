@@ -1,11 +1,16 @@
 <?php
-if (session_status() == PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// connection to database
-$link = mysqli_connect("localhost", "root", "") or die(mysqli_connect_error());
+$db_host = "localhost";
+$db_user = "root";
+$db_pass = "";
+$db_name = "fkclubs";
 
-// select database
-mysqli_select_db($link, "fkclubs") or die(mysqli_error($link));
+$link = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
+
+if (!$link) {
+    die("Database connection failed: " . mysqli_connect_error());
+}
 ?>
