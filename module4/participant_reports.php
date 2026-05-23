@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/config.db.php';
+require_once __DIR__ . '/../config.db.php';
 if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
 // Dynamic Multi-Table Relational SQL JOIN Query grouping points across transaction entries
