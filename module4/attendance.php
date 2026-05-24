@@ -1,83 +1,86 @@
 <?php
-require_once __DIR__ . '/../config/db.config.php';
-if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
+require_once '../config/db.config.php';
+if(!isset($_SESSION['user_id'])) { header("Location: ../module1/login.php"); exit; }
 
-$action_msg = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['log_metrics'])) {
-    $registration_id = intval($_POST['registration_id']);
-    $user_id = intval($_POST['user_id']);
-    $status = $_POST['attendance_status'];
-
-    // Table A: Enforcement and Scoring Specification Logic Matrix
-    $points_earned = 0;
-    if ($status === 'Present')   $points_earned = 10;
-    if ($status === 'Late')      $points_earned = 5;
-    if ($status === 'Volunteer') $points_earned = 5;
-    if ($status === 'Absent')    $points_earned = -10;
-
-    // Mutate performance metric parameters in the dynamic database environment
-    $dup_q = mysqli_query($link, "SELECT * FROM attendance WHERE registration_id = $registration_id");
+// Process attendance logging matching the system specs matrix rules
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SESSION['user_type'] !== 'Student') {
+    $reg_id = $_POST['registration_id'];
+    $status_val = $_POST['attendance_status'];
     
-    if (mysqli_num_rows($dup_q) > 0) {
-        $update_q = "UPDATE attendance SET attendance_status = '$status', points_earned = $points_earned, check_in_time = NOW() WHERE registration_id = $registration_id";
-        mysqli_query($link, $update_q);
+    // Evaluate matrix scores criteria automatically based on Table A requirements
+    $points = 0;
+    if ($status_val === 'Present')   { $points = 10; }
+    if ($status_val === 'Late')      { $points = 5; }
+    if ($status_val === 'Absent')    { $points = -10; }
+    if ($status_val === 'Volunteer') { $points = 5; }
+
+    // Identify user context mapping link
+    $lookup = $conn->prepare("SELECT user_id FROM event_registration WHERE registration_id = ?");
+    $lookup->execute([$reg_id]);
+    $u_id = $lookup->fetchColumn();
+
+    // Upsert mechanism to prevent double logs
+    $checkLog = $conn->prepare("SELECT count(*) FROM attendance WHERE registration_id = ?");
+    $checkLog->execute([$reg_id]);
+    
+    if($checkLog->fetchColumn() > 0) {
+        $stmt = $conn->prepare("UPDATE attendance SET attendance_status=?, check_in_time=NOW(), points_earned=? WHERE registration_id=?");
+        $stmt->execute([$status_val, $points, $reg_id]);
     } else {
-        $insert_q = "INSERT INTO attendance (registration_id, user_id, attendance_status, check_in_time, points_earned) 
-                     VALUES ($registration_id, $user_id, '$status', NOW(), $points_earned)";
-                     mysqli_query($link, $insert_q);
+        $stmt = $conn->prepare("INSERT INTO attendance (registration_id, user_id, attendance_status, check_in_time, points_earned) VALUES (?, ?, ?, NOW(), ?)");
+        $stmt->execute([$reg_id, $u_id, $status_val, $points]);
     }
-    $action_msg = "<div class='alert alert-success'>Attendance parameters logged. Enforcement score successfully distributed.</div>";
+    header("Location: attendance.php?success=1");
+    exit;
 }
 
-// Join Table implementation extracting unlogged registration transactions
-$roster_query = "
-    SELECT r.registration_id, r.user_id, u.name as student_name, e.event_name 
-    FROM event_registration r
-    JOIN user u ON r.user_id = u.user_id
-    JOIN event e ON r.event_id = e.event_id
-    LEFT JOIN attendance a ON r.registration_id = a.registration_id
-    WHERE r.status = 'Registered' AND a.attendance_id IS NULL";
-$roster_res = mysqli_query($link, $roster_query);
-?>
-<?php require_once __DIR__ . '/header.php'; require_once __DIR__ . '/sidebar.php'; ?>
+// Complex Join query mapping across event registries structures
+$registryQuery = "SELECT r.registration_id, r.status, e.event_name, u.name as student_name, u.user_id 
+                  FROM event_registration r
+                  JOIN event e ON r.event_id = e.event_id
+                  JOIN user u ON r.user_id = u.user_id
+                  WHERE r.status = 'Registered'";
+$registrations = $conn->query($registryQuery)->fetchAll();
 
-<h2>Attendance Matrix Verification Engine (Table A Mapping)</h2>
-<hr style="margin:15px 0; border:0; border-top:1px solid #e2e8f0;">
-<?php echo $action_msg; ?>
+include '../includes/header.php';
+include '../includes/sidebar.php';
+?>
+
+<h2>Figure 4.1 Record Attendance Page (Committee View)</h2>
 
 <table class="data-table">
     <thead>
         <tr>
-            <th>Student Identity Reference</th>
-            <th>Designated Target Slate</th>
-            <th>Evaluation Status Code Matrix</th>
+            <th>Event Name</th>
+            <th>Student Name</th>
+            <th>Mark Attendance Status (Table A Rules Matrix)</th>
         </tr>
     </thead>
     <tbody>
-        <?php while($row = mysqli_fetch_assoc($roster_res)): ?>
+        <?php foreach($registrations as $reg): 
+            // Look up existing session values logged
+            $curLog = $conn->prepare("SELECT attendance_status FROM attendance WHERE registration_id = ?");
+            $curLog->execute([$reg['registration_id']]);
+            $loggedStatus = $curLog->fetchColumn();
+        ?>
         <tr>
-            <td><strong><?php echo htmlspecialchars($row['student_name']); ?></strong></td>
-            <td><?php echo htmlspecialchars($row['event_name']); ?></td>
+            <td><?= htmlspecialchars($reg['event_name']); ?></td>
+            <td><?= htmlspecialchars($reg['student_name']); ?></td>
             <td>
-                <form action="attendance.php" method="POST" style="display:flex; gap:10px; align-items:center;">
-                    <input type="hidden" name="registration_id" value="<?php echo $row['registration_id']; ?>">
-                    <input type="hidden" name="user_id" value="<?php echo $row['user_id']; ?>">
-                    <select name="attendance_status" class="form-control" style="width:180px; padding:4px;">
-                        <option value="Present">Present (+10 Points)</option>
-                        <option value="Late">Late Arrival (+5 Points)</option>
-                        <option value="Volunteer">Volunteer Helper (+5 Points)</option>
-                        <option value="Absent">Absent (-10 Points)</option>
+                <form action="attendance.php" method="POST" style="display:inline-flex; gap:10px;">
+                    <input type="hidden" name="registration_id" value="<?= $reg['registration_id']; ?>">
+                    <select name="attendance_status" required style="padding: 4px;">
+                        <option value="Present" <?= $loggedStatus=='Present'?'selected':''; ?>>Present on time (+10)</option>
+                        <option value="Late" <?= $loggedStatus=='Late'?'selected':''; ?>>Late arrival (+5)</option>
+                        <option value="Absent" <?= $loggedStatus=='Absent'?'selected':''; ?>>Absent without notice (-10)</option>
+                        <option value="Volunteer" <?= $loggedStatus=='Volunteer'?'selected':''; ?>>Volunteer Helper (+5)</option>
                     </select>
-                    <button type="submit" name="log_metrics" class="btn btn-primary btn-sm">Commit Scoring</button>
+                    <button type="submit" class="btn-inline-edit" style="background:#28a745;">Save</button>
                 </form>
             </td>
         </tr>
-        <?php endwhile; ?>
-        <?php if(mysqli_num_rows($roster_res) == 0): ?>
-            <tr><td colspan="3" style="text-align:center; color:#64748b;">No outstanding tracking data pipelines pending valuation logic.</td></tr>
-        <?php endif; ?>
+        <?php endforeach; ?>
     </tbody>
 </table>
 
-<?php require_once __DIR__ . '/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

@@ -1,57 +1,37 @@
 <?php
-require_once __DIR__ . '/../config/db.config.php';
-if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
+require_once '../config/db.config.php';
+if(!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
-$user_id = $_SESSION['user_id'];
-$feedback = '';
-
-// CRUD Operation: Update personal identity details
-if (isset($_POST['update_profile'])) {
-    $name = mysqli_real_escape_string($link, $_POST['name']);
-    $email = mysqli_real_escape_string($link, $_POST['email']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'];
+    $email = $_POST['email'];
     
-    // File upload management loop for profile images matching table specifications
-    $photo_filename = null;
-    if (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] === UPLOAD_ERR_OK) {
-        $ext = pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION);
-        $photo_filename = "uploads/avatar_" . $user_id . "_" . time() . "." . $ext;
-        move_uploaded_file($_FILES['profile_photo']['tmp_name'], __DIR__ . '/' . $photo_filename);
-    }
-
-    if ($photo_filename) {
-        $update_q = "UPDATE user SET name = '$name', email = '$email', profile_photo = '$photo_filename' WHERE user_id = $user_id";
-    } else {
-        $update_q = "UPDATE user SET name = '$name', email = '$email' WHERE user_id = $user_id";
-    }
-    
-    if (mysqli_query($link, $update_q)) {
-        $_SESSION['name'] = $name;
-        $feedback = "<div class='alert alert-success'>Profile metadata synchronized successfully.</div>";
-    }
+    $stmt = $conn->prepare("UPDATE user SET name = ?, email = ? WHERE user_id = ?");
+    $stmt->execute([$name, $email, $_SESSION['user_id']]);
+    $_SESSION['user_name'] = $name;
+    header("Location: profile.php?success=1");
+    exit;
 }
 
-$my_meta = mysqli_fetch_assoc(mysqli_query($link, "SELECT * FROM user WHERE user_id = $user_id"));
+$stmt = $conn->prepare("SELECT * FROM user WHERE user_id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$user = $stmt->fetch();
+
+include '../includes/header.php';
+include '../includes/sidebar.php';
 ?>
-<?php require_once __DIR__ . '/header.php'; require_once __DIR__ . '/sidebar.php'; ?>
-
-<h2>Manage Personal Information Profile</h2>
-<hr style="margin:15px 0; border:0; border-top:1px solid #e2e8f0;">
-<?php echo $feedback; ?>
-
-<div class="form-container" style="max-width:550px;">
-    <form action="profile.php" method="POST" enctype="multipart/form-data">
-        <div style="text-align:center; margin-bottom:20px;">
-            <?php if(!empty($my_meta['profile_photo'])): ?>
-                <img src="<?php echo htmlspecialchars($my_meta['profile_photo']); ?>" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid #cbd5e1;">
-            <?php else: ?>
-                <div style="width:100px; height:100px; border-radius:50%; background:#e2e8f0; margin:0 auto; display:flex; align-items:center; justify-content:center; color:#64748b; font-weight:bold;">No Avatar</div>
-            <?php endif; ?>
+<h2>User Profile Management</h2>
+<div class="form-container-card">
+    <form action="profile.php" method="POST">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" value="<?= htmlspecialchars($user['name']); ?>" required>
         </div>
-        <div class="form-group"><label>Full Name Reference</label><input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($my_meta['name']); ?>" required></div>
-        <div class="form-group"><label>Network Communication Email</label><input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($my_meta['email']); ?>" required></div>
-        <div class="form-group"><label>Modify Profile Picture Resource</label><input type="file" name="profile_photo" class="form-control"></div>
-        <button type="submit" name="update_profile" class="btn btn-primary" style="margin-top:10px;">Commit Profile Mutations</button>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" value="<?= htmlspecialchars($user['email']); ?>" required>
+        </div>
+        <button type="submit" class="btn-submit">Update Profile</button>
     </form>
 </div>
-
-<?php require_once __DIR__ . '/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

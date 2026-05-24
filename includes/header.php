@@ -1,28 +1,20 @@
-<?php
-require_once __DIR__ . '/../config/db.config.php';
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FKSC & EMS - Faculty of Computing</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>FK Student Club & Event Management System</title>
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 <div class="app-container">
     <header class="main-header">
-        <div class="logo-area">
-            <div class="logo-box">UMPSA Logo</div>
-            <div class="logo-box">FKSC & EMS</div>
+        <div class="logo-section">
+            <img src="../images/umpsa_logo.png" alt="UMPSA Logo" class="logo">
+            <img src="../images/logo_fk_dummy.png" alt="FKSC&EMS Logo" class="logo">
         </div>
-        <div class="system-title">
-            <h2>FK Club Activity Management & Attendance System</h2>
-        </div>
-        <div class="user-meta">
-            <?php if(isset($_SESSION['user_id'])): ?>
-                <span>Active Session: <strong><?php echo htmlspecialchars($_SESSION['name']); ?></strong> (<?php echo htmlspecialchars($_SESSION['user_type']); ?>)</span>
+        <div class="session-info">
+            <?php if(isset($_SESSION['user_name'])): ?>
+                <span>Welcome, <strong><?= htmlspecialchars($_SESSION['user_name']); ?></strong> (<?= htmlspecialchars($_SESSION['user_type']); ?>)</span>
             <?php endif; ?>
         </div>
     </header>

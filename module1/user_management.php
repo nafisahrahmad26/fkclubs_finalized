@@ -1,97 +1,136 @@
 <?php
-require_once __DIR__ . '/../config/db.config.php';
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'Admin') { header("Location: login.php"); exit; }
+require_once '../config/db.config.php';
+if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'Admin') { 
+    header("Location: login.php"); exit; 
+}
 
-$msg = '';
+// Handle Delete CRUD Operation
+if (isset($_GET['delete'])) {
+    $stmt = $conn->prepare("DELETE FROM user WHERE user_id = ?");
+    $stmt->execute([$_GET['delete']]);
+    header("Location: user_management.php");
+    exit;
+}
 
-// CRUD Operation: Create
-if (isset($_POST['create_user'])) {
-    $name = mysqli_real_escape_string($link, $_POST['name']);
-    $email = mysqli_real_escape_string($link, $_POST['email']);
-    $username = mysqli_real_escape_string($link, $_POST['username']);
-    $password = mysqli_real_escape_string($link, $_POST['password']);
+// Handle Create/Update CRUD Operation
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $username = $_POST['username'];
+    $password = $_POST['password'];
     $user_type = $_POST['user_type'];
+    $status = $_POST['status'];
 
-    $query = "INSERT INTO user (name, email, username, password, user_type, status) VALUES ('$name', '$email', '$username', '$password', '$user_type', 'Active')";
-    if (mysqli_query($link, $query)) {
-        $msg = "<div class='alert alert-success'>User registered successfully!</div>";
+    if (!empty($_POST['user_id'])) {
+        // Update Action
+        $stmt = $conn->prepare("UPDATE user SET name=?, email=?, username=?, password=?, user_type=?, status=? WHERE user_id=?");
+        $stmt->execute([$name, $email, $username, $password, $user_type, $status, $_POST['user_id']]);
     } else {
-        $msg = "<div class='alert alert-danger'>Error execution: " . mysqli_error($link) . "</div>";
+        // Create Action
+        $stmt = $conn->prepare("INSERT INTO user (name, email, username, password, user_type, status) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$name, $email, $username, $password, $user_type, $status]);
     }
-}
-
-// CRUD Operation: Delete
-if (isset($_GET['delete_id'])) {
-    $delete_id = intval($_GET['delete_id']);
-    mysqli_query($link, "DELETE FROM user WHERE user_id = $delete_id");
     header("Location: user_management.php");
     exit;
 }
 
-// CRUD Operation: Update status parameter
-if (isset($_GET['toggle_status'])) {
-    $toggle_id = intval($_GET['toggle_status']);
-    mysqli_query($link, "UPDATE user SET status = IF(status='Active', 'Inactive', 'Active') WHERE user_id = $toggle_id");
-    header("Location: user_management.php");
-    exit;
-}
+// Handle Filter and Search
+$search = $_GET['search'] ?? '';
+$roleFilter = $_GET['role_filter'] ?? '';
 
-// CRUD Operation: Read
-$users_res = mysqli_query($link, "SELECT * FROM user ORDER BY user_id DESC");
+$query = "SELECT * FROM user WHERE (name LIKE ? OR email LIKE ?)";
+$params = ["%$search%", "%$search%"];
+
+if (!empty($roleFilter)) {
+    $query .= " AND user_type = ?";
+    $params[] = $roleFilter;
+}
+$stmt = $conn->prepare($query);
+$stmt->execute($params);
+$users = $stmt->fetchAll();
+
+include '../includes/header.php';
+include '../includes/sidebar.php';
 ?>
-<?php require_once __DIR__ . '/header.php'; require_once __DIR__ . '/sidebar.php'; ?>
 
-<h2>System Identity & Membership Base Management</h2>
-<hr style="margin:15px 0; border:0; border-top:1px solid #e2e8f0;">
-<?php echo $msg; ?>
+<h2>User Management</h2>
 
-<div style="display:flex; gap:30px; align-items:flex-start;">
-    <div class="form-container" style="flex:1; max-width:360px;">
-        <h3>Register / Insert New Identity</h3>
-        <form action="user_management.php" method="POST" style="margin-top:15px;">
-            <div class="form-group"><label>Full Name</label><input type="text" name="name" class="form-control" required></div>
-            <div class="form-group"><label>University Email</label><input type="email" name="email" class="form-control" required></div>
-            <div class="form-group"><label>Username</label><input type="text" name="username" class="form-control" required></div>
-            <div class="form-group"><label>Password</label><input type="password" name="password" class="form-control" required></div>
-            <div class="form-group">
-                <label>System Role Assignment</label>
-                <select name="user_type" class="form-control">
-                    <option value="Student">Registered Student</option>
-                    <option value="Staff">Club Committee Member / Staff</option>
-                    <option value="Admin">System Administrator</option>
-                </select>
-            </div>
-            <button type="submit" name="create_user" class="btn btn-success" style="width:100%;">Execute Provisioning</button>
-        </form>
-    </div>
-
-    <div style="flex:2;">
-        <h3>Active System Identity Base</h3>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>Identity Profile</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Operations Matrix</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php while($u = mysqli_fetch_assoc($users_res)): ?>
-                <tr>
-                    <td>#<?php echo $u['user_id']; ?></td>
-                    <td><strong><?php echo htmlspecialchars($u['name']); ?></strong><br><span style="font-size:12px;color:#64748b;"><?php echo htmlspecialchars($u['email']); ?></span></td>
-                    <td><?php echo $u['user_type']; ?></td>
-                    <td><span style="padding:2px 6px; border-radius:12px; font-size:11px; font-weight:bold; background:<?php echo $u['status']=='Active'?'#dcfce7;color:#15803d;':'#fee2e2;color:#b91c1c;';?>"><?php echo $u['status']; ?></span></td>
-                    <td>
-                        <a href="user_management.php?toggle_status=<?php echo $u['user_id']; ?>" class="btn btn-primary btn-sm" style="background:#475569;">Toggle Status</a>
-                        <a href="user_management.php?delete_id=<?php echo $u['user_id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Purge account registry entity permanent?')">Delete</a>
-                    </td>
-                </tr>
-                <?php endwhile; ?> </tbody>
-        </table>
-    </div>
+<div class="form-container-card">
+    <h3>Add / Edit User Account</h3>
+    <form action="user_management.php" method="POST">
+        <input type="hidden" name="user_id" id="form-user-id">
+        <div class="form-row">
+            <input type="text" name="name" id="form-name" placeholder="Full Name" required>
+            <input type="email" name="email" id="form-email" placeholder="Email" required>
+        </div>
+        <div class="form-row">
+            <input type="text" name="username" id="form-username" placeholder="Username" required>
+            <input type="password" name="password" id="form-password" placeholder="Password" required>
+        </div>
+        <div class="form-row">
+            <select name="user_type" id="form-role">
+                <option value="Student">Student</option>
+                <option value="Staff">Staff (Committee/Advisor)</option>
+                <option value="Admin">Admin</option>
+            </select>
+            <select name="status" id="form-status">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-action btn-save">Save User</button>
+    </form>
 </div>
 
-<?php require_once __DIR__ . '/footer.php'; ?>
+<form method="GET" action="user_management.php" class="filter-bar">
+    <input type="text" name="search" value="<?= htmlspecialchars($search); ?>" placeholder="Search User">
+    <select name="role_filter">
+        <option value="">Filter by Role</option>
+        <option value="Admin" <?= $roleFilter=='Admin'?'selected':''; ?>>Admin</option>
+        <option value="Student" <?= $roleFilter=='Student'?'selected':''; ?>>Student</option>
+        <option value="Staff" <?= $roleFilter=='Staff'?'selected':''; ?>>Staff</option>
+    </select>
+    <button type="submit">Search</button>
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach($users as $u): ?>
+        <tr>
+            <td><?= $u['user_id']; ?></td>
+            <td><?= htmlspecialchars($u['name']); ?></td>
+            <td><?= htmlspecialchars($u['email']); ?></td>
+            <td><?= htmlspecialchars($u['user_type']); ?></td>
+            <td><?= htmlspecialchars($u['status']); ?></td>
+            <td>
+                <button class="btn-inline-edit" onclick="editUser(<?= htmlspecialchars(json_encode($u)); ?>)">Edit</button>
+                <a href="user_management.php?delete=<?= $u['user_id']; ?>" class="btn-inline-delete" onclick="return confirm('Delete user record?')">Delete</a>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
+<script>
+function editUser(user) {
+    document.getElementById('form-user-id').value = user.user_id;
+    document.getElementById('form-name').value = user.name;
+    document.getElementById('form-email').value = user.email;
+    document.getElementById('form-username').value = user.username;
+    document.getElementById('form-password').value = user.password;
+    document.getElementById('form-role').value = user.user_type;
+    document.getElementById('form-status').value = user.status;
+}
+</script>
+
+<?php include '../includes/footer.php'; ?>

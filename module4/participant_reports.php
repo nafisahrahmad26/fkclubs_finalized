@@ -1,69 +1,64 @@
 <?php
-require_once __DIR__ . '/../config/db.config.php';
-if (!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
+require_once '../config/db.config.php';
+if(!isset($_SESSION['user_id'])) { header("Location: ../module1/login.php"); exit; }
 
-// Dynamic Multi-Table Relational SQL JOIN Query grouping points across transaction entries
-$report_query = "
-    SELECT 
-        u.user_id,
-        u.name as student_fullname,
-        u.email as tracking_email,
-        IFNULL(SUM(a.points_earned), 0) as aggregated_score
-    FROM user u
-    LEFT JOIN attendance a ON u.user_id = a.user_id
-    WHERE u.user_type = 'Student'
-    GROUP BY u.user_id, u.name, u.email
-    ORDER BY aggregated_score DESC";
+// Module 4 Join Query Reporting Requirement: Multi-table aggregation mapping framework calculations
+$reportsQuery = "SELECT u.user_id, u.name as student_name, u.email,
+                 COUNT(a.attendance_id) as events_attended,
+                 IFNULL(SUM(a.points_earned), 0) as total_points
+                 FROM user u
+                 LEFT JOIN attendance a ON u.user_id = a.user_id
+                 WHERE u.user_type = 'Student'
+                 GROUP BY u.user_id, u.name, u.email
+                 ORDER BY total_points DESC";
+$reportRows = $conn->query($reportsQuery)->fetchAll();
 
-$report_res = mysqli_query($link, $report_query);
+include '../includes/header.php';
+include '../includes/sidebar.php';
 ?>
-<?php require_once __DIR__ . '/header.php'; require_once __DIR__ . '/sidebar.php'; ?>
 
-<h2>Dynamic Engagement Performance Tiers Report</h2>
-<p style="color:#64748b; margin-bottom:20px;">Real-time execution of individual metrics evaluating compliance with Table B evaluation tiers.</p>
+<h2>Figure 4.3 Reports Page (Admin / Faculty View)</h2>
+<h3>Extracurricular Point-Based Recognition Level Audit System</h3>
 
 <table class="data-table">
     <thead>
         <tr>
-            <th>UID</th>
-            <th>Evaluated Student Name</th>
-            <th>Email Pathway</th>
-            <th>Accumulated Point Metrics</th>
-            <th>Calculated Recognition Enforcement Status (Table B Matrix)</th>
+            <th>Student ID Reference</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Events Tracked</th>
+            <th>Accumulated Points</th>
+            <th>Table B Recognition Tier Enforcement Output</th>
         </tr>
     </thead>
     <tbody>
-        <?php while($row = mysqli_fetch_assoc($report_res)): 
-            $score = $row['aggregated_score'];
-            
-            // Core Table B Point-Based Evaluation Translation Layer mapping criteria logic
-            if ($score < 20) {
-                $tier_rating = "Warning / Reminder to participate more";
-                $bg = "#fef2f2"; $fg = "#991b1b";
-            } elseif ($score >= 20 && $score <= 49) {
-                $tier_rating = "Eligible for participation certificate";
-                $bg = "#fffbeb"; $fg = "#92400e";
-            } elseif ($score >= 50 && $score <= 79) {
-                $tier_rating = "Eligible for active student award / bonus points";
-                $bg = "#eff6ff"; $fg = "#1e40af";
+        <?php foreach($reportRows as $row): 
+            $pts = $row['total_points'];
+            // Table B Point Evaluation Condition Engine
+            if ($pts < 20) {
+                $tier = "<span class='badge-role' style='background:#dc3545;'>Warning / Low Participation</span>";
+            } elseif ($pts >= 20 && $pts <= 49) {
+                $tier = "<span class='badge-role' style='background:#ffc107; color:#000;'>Participation Certificate Eligible</span>";
+            } elseif ($pts >= 50 && $pts <= 79) {
+                $tier = "<span class='badge-role' style='background:#17a2b8;'>Active Student Award / Bonus Priority</span>";
             } else {
-                $tier_rating = "Outstanding participant; eligible for leadership award / priority registration";
-                $bg = "#f0fdf4"; $fg = "#166534";
+                $tier = "<span class='badge-role' style='background:#28a745;'>Outstanding Leadership Award Tier</span>";
             }
         ?>
-        <tr style="background: <?php echo $bg; ?>; color: <?php echo $fg; ?>;">
-            <td>#<?php echo $row['user_id']; ?></td>
-            <td><strong><?php echo htmlspecialchars($row['student_fullname']); ?></strong></td>
-            <td><?php echo htmlspecialchars($row['tracking_email']); ?></td>
-            <td>
-                <span style="display:inline-block; padding:4px 12px; border-radius:6px; background:#ffffff; font-weight:700; border:1px solid #cbd5e1; color:#0f172a;">
-                    <?php echo $score; ?> Points
-                </span>
-            </td>
-            <td style="font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.02em;"><?php echo $tier_rating; ?></td>
+        <tr>
+            <td>FK-STU-0<?= $row['user_id']; ?></td>
+            <td><strong><?= htmlspecialchars($row['student_name']); ?></strong></td>
+            <td><?= htmlspecialchars($row['email']); ?></td>
+            <td><?= $row['events_attended']; ?></td>
+            <td><span style="font-weight:bold; color:#0056b3;"><?= $pts; ?> pts</span></td>
+            <td><?= $tier; ?></td>
         </tr>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
     </tbody>
 </table>
 
-<?php require_once __DIR__ . '/footer.php'; ?>
+<div class="filter-bar" style="margin-top:20px;">
+     <button onclick="window.print()" class="btn-action">Print Official Audit Report</button>
+</div>
+
+<?php include '../includes/footer.php'; ?>
