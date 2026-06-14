@@ -55,7 +55,16 @@ include '../includes/header.php';
 include '../includes/sidebar.php';
 ?>
 
-<h2>Record Attendance Page (Committee View)</h2>
+
+<?php if($_SESSION['user_type'] == 'Student'): ?>
+
+    <h2>My Participation Dashboard</h2>
+
+<?php else: ?>
+
+    <h2>Record Attendance Page (Committee View)</h2>
+
+<?php endif; ?>
 
 <table class="data-table">
     <thead>
