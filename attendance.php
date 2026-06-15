@@ -58,13 +58,83 @@ include 'sidebar.php';
 
 <?php if($_SESSION['user_type'] == 'Student'): ?>
 
-    <h2>My Participation Dashboard</h2>
+<h2>My Participation Dashboard</h2>
+
+<?php
+
+$user_id = $_SESSION['user_id'];
+
+$query = mysqli_query($conn,"
+SELECT
+    e.event_name,
+    a.attendance_status,
+    a.points_earned
+FROM attendance a
+JOIN event_registration r
+    ON a.registration_id = r.registration_id
+JOIN event e
+    ON r.event_id = e.event_id
+WHERE a.user_id = '$user_id'
+");
+
+$totalPoints = 0;
+
+?>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Event Name</th>
+            <th>Attendance Status</th>
+            <th>Points Earned</th>
+        </tr>
+    </thead>
+    <tbody>
+
+<?php while($row = mysqli_fetch_assoc($query)): ?>
+
+<?php $totalPoints += $row['points_earned']; ?>
+
+<tr>
+    <td><?php echo htmlspecialchars($row['event_name']); ?></td>
+    <td><?php echo htmlspecialchars($row['attendance_status']); ?></td>
+    <td><?php echo $row['points_earned']; ?></td>
+</tr>
+
+<?php endwhile; ?>
+
+    </tbody>
+</table>
+
+<br>
+
+<h3>Total Points : <?php echo $totalPoints; ?></h3>
+
+<?php
+
+if($totalPoints < 20){
+    $recognition = "Warning / Reminder to Participate More";
+}
+elseif($totalPoints >= 20 && $totalPoints <= 49){
+    $recognition = "Eligible for Participation Certificate";
+}
+elseif($totalPoints >= 50 && $totalPoints <= 79){
+    $recognition = "Eligible for Active Student Award";
+}
+else{
+    $recognition = "Outstanding Participant";
+}
+
+?>
+
+<h3>Recognition Status : <?php echo $recognition; ?></h3>
 
 <?php else: ?>
-
     <h2>Record Attendance Page (Committee View)</h2>
 
 <?php endif; ?>
+
+<?php if($_SESSION['user_type'] != 'Student'): ?>
 
 <table class="data-table">
     <thead>
@@ -101,4 +171,12 @@ include 'sidebar.php';
     </tbody>
 </table>
 
+<<<<<<< HEAD:attendance.php
 <?php include 'includes/footer.php'; ?>
+=======
+</table>
+
+<?php endif; ?>
+
+<?php include '../includes/footer.php'; ?>
+>>>>>>> db92ae0 (Added functionality files for Module X):module4/attendance.php
