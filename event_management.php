@@ -1,6 +1,7 @@
 <?php
 require_once 'config/db.config.php';
 if(!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
+if($_SESSION['user_type'] === 'Admin') { header("Location: admin_dashboard.php"); exit; }
 
 // Tambah Event Baru
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SESSION['user_type'] !== 'Student') {
@@ -23,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SESSION['user_type'] !== 'Student
 $eventsResult = mysqli_query($conn, "SELECT * FROM event ORDER BY event_date ASC");
 $clubsResult = mysqli_query($conn, "SELECT club_id, club_name FROM club WHERE status='Active'");
 
-include 'includes/header.php';
-include 'includes/sidebar.php';
+include 'header.php';
+include 'sidebar.php';
 ?>
 
 <h2>Event List & Management</h2>

@@ -171,12 +171,8 @@ else{
     </tbody>
 </table>
 
-<<<<<<< HEAD:attendance.php
-<?php include 'includes/footer.php'; ?>
-=======
 </table>
 
 <?php endif; ?>
 
-<?php include '../includes/footer.php'; ?>
->>>>>>> db92ae0 (Added functionality files for Module X):module4/attendance.php
+<?php include 'footer.php'; ?>
