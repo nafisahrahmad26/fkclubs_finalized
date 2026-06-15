@@ -1,5 +1,5 @@
 <?php
-require_once '../config/db.config.php';
+require_once 'config/db.config.php';
 if(!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
 $user_id = intval($_SESSION['user_id']);
@@ -25,8 +25,8 @@ $result = mysqli_stmt_get_result($stmt);
 $user = mysqli_fetch_assoc($result);
 mysqli_stmt_close($stmt);
 
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include 'header.php';
+include 'sidebar.php';
 ?>
 <h2>User Profile Management</h2>
 <div class="form-container-card">
@@ -42,4 +42,4 @@ include '../includes/sidebar.php';
         <button type="submit" class="btn-submit">Update Profile</button>
     </form>
 </div>
-<?php include '../includes/footer.php'; ?>
+<?php include 'footer.php'; ?>

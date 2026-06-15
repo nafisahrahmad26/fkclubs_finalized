@@ -1,6 +1,6 @@
 <?php
-require_once '../config/db.config.php';
-if(!isset($_SESSION['user_id'])) { header("Location: ../module1/login.php"); exit; }
+require_once 'config/db.config.php';
+if(!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
 // CRUD Create & Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SESSION['user_type'] === 'Admin') {
@@ -33,8 +33,8 @@ $clubsResult = mysqli_stmt_get_result($stmt);
 
 $advisors = mysqli_query($conn, "SELECT user_id, name FROM user WHERE user_type = 'Staff'");
 
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include 'header.php';
+include 'sidebar.php';
 ?>
 
 <h2>Club List</h2>
@@ -118,5 +118,5 @@ function editClub(club) {
 
 <?php 
 mysqli_stmt_close($stmt);
-include '../includes/footer.php'; 
+include 'footer.php'; 
 ?>

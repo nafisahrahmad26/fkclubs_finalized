@@ -3,13 +3,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$db_host = "localhost";
-$db_user = "root";
-$db_pass = "";
-$db_name = "fkclubs";
+$localhost = "localhost";
+$username   = "root";
+$password   = "";
+$database   = "fkclubs";
 
-// TUKAR NAMA VARIABLE DARIPADA $link KEPADA $conn DI SINI:
-$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
+$conn = mysqli_connect($localhost, $username, $password, $database);
 
 if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());

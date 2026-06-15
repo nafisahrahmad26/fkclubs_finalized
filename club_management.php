@@ -1,6 +1,6 @@
 <?php
-require_once '../config/db.config.php';
-if(!isset($_SESSION['user_id'])) { header("Location: ../module1/login.php"); exit; }
+require_once 'config/db.config.php';
+if(!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
 $club_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $user_id = intval($_SESSION['user_id']);
@@ -39,8 +39,8 @@ mysqli_stmt_bind_param($memStmt, "i", $club_id);
 mysqli_stmt_execute($memStmt);
 $membersResult = mysqli_stmt_get_result($memStmt);
 
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include 'header.php';
+include 'sidebar.php';
 ?>
 
 <h2>Club Details Management</h2>
@@ -77,5 +77,5 @@ include '../includes/sidebar.php';
 
 <?php 
 mysqli_stmt_close($memStmt);
-include '../includes/footer.php'; 
+include 'footer.php'; 
 ?>

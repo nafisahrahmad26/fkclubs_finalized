@@ -1,6 +1,6 @@
 <?php
-require_once '../config/db.config.php';
-if(!isset($_SESSION['user_id'])) { header("Location: ../module1/login.php"); exit; }
+require_once 'config/db.config.php';
+if(!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
 // SQL JOIN Multi-table query: Agregasi mata dan jumlah event yang disertai pelajar
 $reportsQuery = "SELECT u.user_id, u.name as student_name, u.email,
@@ -13,8 +13,8 @@ $reportsQuery = "SELECT u.user_id, u.name as student_name, u.email,
                  ORDER BY total_points DESC";
 $reportRows = mysqli_query($conn, $reportsQuery);
 
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include 'header.php';
+include 'sidebar.php';
 ?>
 
 <h2>Reports Page (Admin / Faculty View)</h2>
@@ -62,4 +62,4 @@ include '../includes/sidebar.php';
      <button onclick="window.print()" class="btn-action">Print Official Audit Report</button>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php include 'footer.php'; ?>

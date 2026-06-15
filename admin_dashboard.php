@@ -1,5 +1,5 @@
 <?php
-require_once '../config/db.config.php';
+require_once 'config/db.config.php';
 if(!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
 // Kira Total Users
@@ -28,8 +28,8 @@ $recentQuery = "SELECT u.user_id, u.name, u.email, u.user_type, u.status
                 ORDER BY u.user_id DESC LIMIT 3";
 $recentUsers = mysqli_query($conn, $recentQuery);
 
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include 'header.php';
+include 'sidebar.php';
 ?>
 
 <h2>Admin Dashboard</h2>
@@ -70,4 +70,4 @@ include '../includes/sidebar.php';
     <p>Sistem mata ganjaran kokurikulum (Extracurricular points system) telah dikemaskini mengikut ketetapan Table A.</p>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php include 'footer.php'; ?>

@@ -1,5 +1,5 @@
 <?php
-require_once '../config/db.config.php';
+require_once 'config/db.config.php';
 if(!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'Admin') { 
     header("Location: login.php"); exit; 
 }
@@ -63,8 +63,8 @@ $result = mysqli_stmt_get_result($stmt);
 ?>
 
 <?php
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include 'header.php';
+include 'sidebar.php';
 ?>
 
 <h2>User Management</h2>
@@ -149,5 +149,5 @@ function editUser(user) {
 
 <?php 
 mysqli_stmt_close($stmt);
-include '../includes/footer.php'; 
+include 'footer.php'; 
 ?>

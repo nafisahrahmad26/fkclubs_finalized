@@ -1,5 +1,5 @@
 <?php
-require_once '../config/db.config.php';
+require_once 'config/db.config.php';
 
 // Pastikan session bermula sekiranya fail db.config.php belum memulakannya
 if (session_status() === PHP_SESSION_NONE) {
@@ -54,13 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Login - FKSC&EMS</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="login-page">
     <div class="login-container">
         <div class="login-header-logos">
-            <img src="../images/umpsa_logo.png" alt="UMPSA Logo">
-            <img src="../images/logo_fk_dummy.png" alt="FKSC&EMS Logo">
+            <img src="images/umpsa_logo.png" alt="UMPSA Logo">
+            <img src="images/logo_fk_dummy.png" alt="FKSC&EMS Logo">
         </div>
         <h2>Welcome to FKSC&EMS</h2>
         <p>Please login to continue</p>

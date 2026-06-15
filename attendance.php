@@ -1,6 +1,6 @@
 <?php
-require_once '../config/db.config.php';
-if(!isset($_SESSION['user_id'])) { header("Location: ../module1/login.php"); exit; }
+require_once 'config/db.config.php';
+if(!isset($_SESSION['user_id'])) { header("Location: login.php"); exit; }
 
 // Simpan atau kemaskini kehadiran (Table A Automation Engine)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SESSION['user_type'] !== 'Student') {
@@ -51,8 +51,8 @@ $registryQuery = "SELECT r.registration_id, r.status, e.event_name, u.name as st
                   WHERE r.status = 'Registered'";
 $registrationsResult = mysqli_query($conn, $registryQuery);
 
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include 'header.php';
+include 'sidebar.php';
 ?>
 
 
@@ -101,4 +101,4 @@ include '../includes/sidebar.php';
     </tbody>
 </table>
 
-<?php include '../includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>
