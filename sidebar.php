@@ -11,7 +11,7 @@
                 <li><a href="event_management.php">Events</a></li>
                 <?php endif; ?>
                 <li><a href="attendance.php">Attendance</a></li>
-                <li><a href="participan_reports.php">Reports</a></li>
+                <li><a href="participant_reports.php">Reports</a></li>
                 <li><a href="profile.php">Profile</a></li>
                 <li><a href="logout.php">Logout</a></li>
             <?php else: ?>
