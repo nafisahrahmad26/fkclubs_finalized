@@ -1,5 +1,5 @@
 <?php
-require_once '../config/db.config.php';
+require_once 'config/db.config.php';
 
 // Pastikan session bermula sekiranya fail db.config.php belum memulakannya
 if (session_status() === PHP_SESSION_NONE) {
@@ -33,8 +33,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['user_type'] = $user['user_type'];
                 
+                if ($user['user_type'] == 'Admin') {
                 header("Location: admin_dashboard.php");
-                exit;
+            }
+            elseif ($user['user_type'] == 'Student') {
+                header("Location: student_dashboard.php");
+            }
+            elseif ($user['user_type'] == 'Staff') {
+                header("Location: committee_dashboard.php");
+            }
+            else {
+                header("Location: login.php");
+            }
+            exit;
+
             } else {
                 $error = "Invalid active credentials.";
             }
@@ -52,18 +64,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="../css/login.css">
     <meta charset="UTF-8">
     <title>Login - FKSC&EMS</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/login.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/login.css">
     
 </head>
 <body class="login-page">
     <div class="login-container">
         <div class="login-header-logos">
-            <img src="../images/umpsa_logo.png" alt="UMPSA Logo">
-            <img src="../images/logo_fk_dummy.png" alt="FKSC&EMS Logo">
+            <img src="images/umpsa_logo.png" alt="UMPSA Logo">
+            <img src="images/logo_fk_dummy.png" alt="FKSC&EMS Logo">
         </div>
         <h2>Welcome to FKSC&EMS</h2>
         <p>Please login to continue</p>

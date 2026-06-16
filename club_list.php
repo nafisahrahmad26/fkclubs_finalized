@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SESSION['user_type'] === 'Admin')
     if (!empty($_POST['club_id'])) {
         $club_id = intval($_POST['club_id']);
         $stmt = mysqli_prepare($conn, "UPDATE club SET club_name=?, club_category=?, club_description=?, advisor_id=?, status=? WHERE club_id=?");
-        mysqli_stmt_bind_param($stmt, "sssiis", $club_name, $club_category, $club_description, $advisor_id, $status, $club_id);
+        mysqli_stmt_bind_param($stmt, "sssisi", $club_name, $club_category, $club_description, $advisor_id, $status, $club_id);
     } else {
         $stmt = mysqli_prepare($conn, "INSERT INTO club (club_name, club_category, club_description, advisor_id, status) VALUES (?, ?, ?, ?, ?)");
         mysqli_stmt_bind_param($stmt, "sssis", $club_name, $club_category, $club_description, $advisor_id, $status);
@@ -32,6 +32,25 @@ mysqli_stmt_execute($stmt);
 $clubsResult = mysqli_stmt_get_result($stmt);
 
 $advisors = mysqli_query($conn, "SELECT user_id, name FROM user WHERE user_type = 'Staff'");
+
+if($_SESSION['user_type'] === 'Admin') {
+
+    $graphQuery = mysqli_query($conn, "
+        SELECT c.club_name, COUNT(m.user_id) AS total_members
+        FROM club c
+        LEFT JOIN membership m ON c.club_id = m.club_id
+        GROUP BY c.club_id
+    ");
+
+    $clubNames = [];
+    $memberCounts = [];
+
+    while($row = mysqli_fetch_assoc($graphQuery)){
+        $clubNames[] = $row['club_name'];
+        $memberCounts[] = $row['total_members'];
+    }
+}
+
 
 include 'header.php';
 include 'sidebar.php';
@@ -116,7 +135,39 @@ function editClub(club) {
 }
 </script>
 
+<?php if($_SESSION['user_type'] === 'Admin'): ?>
+
+<h3>Club Membership Statistics</h3>
+<canvas id="clubChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const clubNames = <?php echo json_encode($clubNames); ?>;
+const memberCounts = <?php echo json_encode($memberCounts); ?>;
+
+new Chart(document.getElementById('clubChart'), {
+    type: 'bar',
+    data: {
+        labels: clubNames,
+        datasets: [{
+            label: 'Total Members',
+            data: memberCounts
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+
+<?php endif; ?>
+
 <?php 
 mysqli_stmt_close($stmt);
 include 'footer.php'; 
-?>

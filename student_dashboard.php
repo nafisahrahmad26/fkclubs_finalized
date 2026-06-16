@@ -9,8 +9,8 @@ if(!isset($_SESSION['user_id'])){
 $userId = $_SESSION['user_id'];
 $userName = $_SESSION['user_name'];
 
-include 'includes/header.php';
-include 'includes/sidebar.php';
+include 'header.php';
+include 'sidebar.php';
 ?>
 
 <h2>Student Dashboard</h2>
